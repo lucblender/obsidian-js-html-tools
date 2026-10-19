@@ -97,3 +97,19 @@
     (<strong data-field="focus-output-m">0.000</strong> m)
   </p>
 </div>
+
+<div class="tele-aperture-calculator" style="border:1px solid var(--background-modifier-border); border-radius:8px; padding:12px 14px; margin:12px 0;">
+  <label>
+    Base aperture (f-number):
+    <input type="number" min="0.1" step="0.1" data-field="base-fnumber" value="2.8">
+  </label>
+  <br>
+  <br>
+  <label>
+    Teleconverter ratio (M):
+    <input type="number" min="1" step="0.1" data-field="tele-ratio" value="2">
+  </label>
+  <p>
+    Reduced aperture: <strong data-field="aperture-output">f/0.0</strong>
+  </p>
+</div>

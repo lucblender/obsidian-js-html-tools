@@ -407,4 +407,34 @@ publish.registerMarkdownPostProcessor(async (el, ctx) => {
     extensionInput.addEventListener('input', updateFocusDistance);
     updateFocusDistance();
   });
+
+  el.querySelectorAll('.tele-aperture-calculator').forEach((calculator) => {
+    if (calculator.dataset.teleApertureReady === 'true') return;
+    calculator.dataset.teleApertureReady = 'true';
+
+    const baseFnumberInput = calculator.querySelector('[data-field="base-fnumber"]');
+    const ratioInput = calculator.querySelector('[data-field="tele-ratio"]');
+    const output = calculator.querySelector('[data-field="aperture-output"]');
+
+    if (!(baseFnumberInput instanceof HTMLInputElement) || !(ratioInput instanceof HTMLInputElement) || !(output instanceof HTMLElement)) {
+      return;
+    }
+
+    const updateTeleAperture = () => {
+      const baseFnumber = Number(baseFnumberInput.value);
+      const ratio = Number(ratioInput.value);
+
+      if (!Number.isFinite(baseFnumber) || !Number.isFinite(ratio) || baseFnumber <= 0 || ratio < 1) {
+        output.textContent = 'Invalid input';
+        return;
+      }
+
+      const reducedAperture = baseFnumber * ratio;
+      output.textContent = `f/${reducedAperture.toFixed(1)}`;
+    };
+
+    baseFnumberInput.addEventListener('input', updateTeleAperture);
+    ratioInput.addEventListener('input', updateTeleAperture);
+    updateTeleAperture();
+  });
 });
