@@ -707,4 +707,130 @@ publish.registerMarkdownPostProcessor(async (el, ctx) => {
 
     tryInitializeId11Calculator(15);
   });
+
+  el.querySelectorAll('.eclipse-simulator').forEach((simulator) => {
+    if (simulator.dataset.eclipseReady === 'true') return;
+    simulator.dataset.eclipseReady = 'true';
+
+    const focalRangeInput = simulator.querySelector('[data-field="focal-range"]');
+    const focalNumberInput = simulator.querySelector('[data-field="focal-number"]');
+    const formatInput = simulator.querySelector('[data-field="format"]');
+    const zoomRangeInput = simulator.querySelector('[data-field="zoom-range"]');
+    const zoomNumberInput = simulator.querySelector('[data-field="zoom-number"]');
+    const sensorSizeOutput = simulator.querySelector('[data-field="sensor-size"]');
+    const sunDiameterOutput = simulator.querySelector('[data-field="sun-diameter"]');
+    const hfovOutput = simulator.querySelector('[data-field="hfov"]');
+    const vfovOutput = simulator.querySelector('[data-field="vfov"]');
+    const sunFillOutput = simulator.querySelector('[data-field="sun-fill"]');
+    const canvas = simulator.querySelector('[data-field="canvas"]');
+
+    if (!(focalRangeInput instanceof HTMLInputElement) || !(focalNumberInput instanceof HTMLInputElement) || !(formatInput instanceof HTMLSelectElement) || !(zoomRangeInput instanceof HTMLInputElement) || !(zoomNumberInput instanceof HTMLInputElement) || !(sensorSizeOutput instanceof HTMLElement) || !(sunDiameterOutput instanceof HTMLElement) || !(hfovOutput instanceof HTMLElement) || !(vfovOutput instanceof HTMLElement) || !(sunFillOutput instanceof HTMLElement) || !(canvas instanceof HTMLCanvasElement)) {
+      return;
+    }
+
+    const context = canvas.getContext('2d');
+    if (!context) {
+      sensorSizeOutput.textContent = 'Canvas not available';
+      return;
+    }
+
+    const sunDiameterDegrees = 0.53;
+    const formats = {
+      '135': { width: 36, height: 24 },
+      '120 6x4.5': { width: 56, height: 41.5 },
+      '120 6x6': { width: 56, height: 56 },
+      '120 6x7': { width: 56, height: 69 },
+      '120 6x9': { width: 56, height: 84 },
+      'APS-C': { width: 23.6, height: 15.7 },
+      'Micro 4/3': { width: 17.3, height: 13 },
+      '1"': { width: 13.2, height: 8.8 },
+    };
+
+    const projectedDiameter = (focalLength) => {
+      const theta = sunDiameterDegrees * (Math.PI / 180);
+      return 2 * focalLength * Math.tan(theta / 2);
+    };
+
+    const fov = (size, focalLength) => {
+      return 2 * Math.atan(size / (2 * focalLength)) * (180 / Math.PI);
+    };
+
+    const setInvalidOutput = () => {
+      sensorSizeOutput.textContent = 'Invalid input';
+      sunDiameterOutput.textContent = 'Invalid input';
+      hfovOutput.textContent = 'Invalid input';
+      vfovOutput.textContent = 'Invalid input';
+      sunFillOutput.textContent = 'Invalid input';
+    };
+
+    const syncNumericInputs = (sourceInput, targetInput) => {
+      targetInput.value = sourceInput.value;
+    };
+
+    const draw = () => {
+      const focalLength = Number(focalNumberInput.value);
+      const zoom = Number(zoomNumberInput.value);
+      const formatName = formatInput.value;
+      const format = formats[formatName];
+
+      if (!format || !Number.isFinite(focalLength) || !Number.isFinite(zoom) || focalLength <= 0 || zoom <= 0) {
+        setInvalidOutput();
+        return;
+      }
+
+      const sensorWidth = format.width * zoom;
+      const sensorHeight = format.height * zoom;
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.fillStyle = 'rgb(46,46,46)';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      const rectX0 = centerX - (sensorWidth / 2);
+      const rectY0 = centerY - (sensorHeight / 2);
+      context.fillStyle = '#ffffff';
+      context.fillRect(rectX0, rectY0, sensorWidth, sensorHeight);
+      context.lineWidth = 2;
+      context.strokeStyle = '#000000';
+      context.strokeRect(rectX0, rectY0, sensorWidth, sensorHeight);
+
+      const projectedSunMm = projectedDiameter(focalLength);
+      const sunDiameterPixels = projectedSunMm * zoom;
+      context.beginPath();
+      context.arc(centerX, centerY, sunDiameterPixels / 2, 0, 2 * Math.PI);
+      context.fillStyle = '#000000';
+      context.fill();
+
+      const hfov = fov(format.width, focalLength);
+      const vfov = fov(format.height, focalLength);
+      const sunFillPercent = 100 * (projectedSunMm / Math.min(format.width, format.height));
+
+      sensorSizeOutput.textContent = `${format.width.toFixed(1)} × ${format.height.toFixed(1)} mm`;
+      sunDiameterOutput.textContent = projectedSunMm.toFixed(3);
+      hfovOutput.textContent = hfov.toFixed(2);
+      vfovOutput.textContent = vfov.toFixed(2);
+      sunFillOutput.textContent = sunFillPercent.toFixed(1);
+    };
+
+    focalRangeInput.addEventListener('input', () => {
+      syncNumericInputs(focalRangeInput, focalNumberInput);
+      draw();
+    });
+    focalNumberInput.addEventListener('input', () => {
+      syncNumericInputs(focalNumberInput, focalRangeInput);
+      draw();
+    });
+    zoomRangeInput.addEventListener('input', () => {
+      syncNumericInputs(zoomRangeInput, zoomNumberInput);
+      draw();
+    });
+    zoomNumberInput.addEventListener('input', () => {
+      syncNumericInputs(zoomNumberInput, zoomRangeInput);
+      draw();
+    });
+    formatInput.addEventListener('change', draw);
+
+    draw();
+  });
 });

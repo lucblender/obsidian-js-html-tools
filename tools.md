@@ -175,3 +175,41 @@
     Development time: <strong data-field="time-output">00:00:00</strong>
   </p>
 </div>
+
+<div class="eclipse-simulator" style="border:1px solid var(--background-modifier-border); border-radius:8px; padding:12px 14px; margin:12px 0;">
+  <label>
+    Focal length (mm):
+    <input type="range" min="10" max="5000" step="1" value="500" data-field="focal-range">
+    <input type="number" min="10" max="5000" step="1" value="500" data-field="focal-number" style="width:90px;">
+  </label>
+  <br>
+  <br>
+  <label>
+    Film / sensor:
+    <select data-field="format">
+      <option value="135">135</option>
+      <option value="120 6x4.5">120 6x4.5</option>
+      <option value="120 6x6">120 6x6</option>
+      <option value="120 6x7">120 6x7</option>
+      <option value="120 6x9">120 6x9</option>
+      <option value="APS-C">APS-C</option>
+      <option value="Micro 4/3">Micro 4/3</option>
+      <option value="1&quot;">1"</option>
+    </select>
+  </label>
+  <br>
+  <br>
+  <label>
+    Display zoom:
+    <input type="range" min="2" max="40" step="0.5" value="10" data-field="zoom-range">
+    <input type="number" min="2" max="40" step="0.5" value="10" data-field="zoom-number" style="width:90px;">
+  </label>
+  <p>
+    Sensor: <strong data-field="sensor-size">-</strong><br>
+    Projected sun: <strong data-field="sun-diameter">-</strong> mm<br>
+    Horizontal FOV: <strong data-field="hfov">-</strong>°<br>
+    Vertical FOV: <strong data-field="vfov">-</strong>°<br>
+    Sun fills short side: <strong data-field="sun-fill">-</strong>%
+  </p>
+  <canvas data-field="canvas" width="900" height="700" style="width:100%; max-width:900px; border:1px solid var(--background-modifier-border); background:rgb(46,46,46);"></canvas>
+</div>
