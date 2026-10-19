@@ -355,4 +355,56 @@ publish.registerMarkdownPostProcessor(async (el, ctx) => {
     equivalentFilmFormatInput.addEventListener('change', updateEquivalentFocalLength);
     updateEquivalentFocalLength();
   });
+
+  el.querySelectorAll('.focus-distance-calculator').forEach((calculator) => {
+    if (calculator.dataset.focusReady === 'true') return;
+    calculator.dataset.focusReady = 'true';
+
+    const focalInput = calculator.querySelector('[data-field="focal-length"]');
+    const focusDistanceInput = calculator.querySelector('[data-field="focus-distance"]');
+    const extensionInput = calculator.querySelector('[data-field="extension-length"]');
+    const outputMm = calculator.querySelector('[data-field="focus-output-mm"]');
+    const outputM = calculator.querySelector('[data-field="focus-output-m"]');
+
+    if (!(focalInput instanceof HTMLInputElement) || !(focusDistanceInput instanceof HTMLInputElement) || !(extensionInput instanceof HTMLInputElement) || !(outputMm instanceof HTMLElement) || !(outputM instanceof HTMLElement)) {
+      return;
+    }
+
+    const updateFocusDistance = () => {
+      const focal = Number(focalInput.value);
+      const focusDistance = Number(focusDistanceInput.value);
+      const extension = Number(extensionInput.value);
+
+      if (!Number.isFinite(focal) || !Number.isFinite(focusDistance) || !Number.isFinite(extension) || focal <= 0 || focusDistance <= 0 || extension < 0 || focusDistance <= focal) {
+        outputMm.textContent = 'Invalid input';
+        outputM.textContent = 'Invalid input';
+        return;
+      }
+
+      const inverseDi = (1 / focal) - (1 / focusDistance);
+      if (inverseDi <= 0) {
+        outputMm.textContent = 'Invalid input';
+        outputM.textContent = 'Invalid input';
+        return;
+      }
+
+      const di = 1 / inverseDi;
+      const diNew = di + extension;
+      const inverseDoPrime = (1 / focal) - (1 / diNew);
+      if (inverseDoPrime <= 0) {
+        outputMm.textContent = 'Invalid input';
+        outputM.textContent = 'Invalid input';
+        return;
+      }
+
+      const doPrime = 1 / inverseDoPrime;
+      outputMm.textContent = doPrime.toFixed(1);
+      outputM.textContent = (doPrime / 1000).toFixed(3);
+    };
+
+    focalInput.addEventListener('input', updateFocusDistance);
+    focusDistanceInput.addEventListener('input', updateFocusDistance);
+    extensionInput.addEventListener('input', updateFocusDistance);
+    updateFocusDistance();
+  });
 });

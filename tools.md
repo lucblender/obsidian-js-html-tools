@@ -74,3 +74,26 @@
     Diag.: <strong data-field="equiv-focal-output-d">0.0</strong> mm
   </p>
 </div>
+
+<div class="focus-distance-calculator" style="border:1px solid var(--background-modifier-border); border-radius:8px; padding:12px 14px; margin:12px 0;">
+  <label>
+    Focal length (mm):
+    <input type="number" min="1" step="0.1" data-field="focal-length" value="50">
+  </label>
+  <br>
+  <br>
+  <label>
+    Focus distance without extension (mm):
+    <input type="number" min="1" step="1" data-field="focus-distance" value="1000">
+  </label>
+  <br>
+  <br>
+  <label>
+    Extension length (mm):
+    <input type="number" min="0" step="0.1" data-field="extension-length" value="12">
+  </label>
+  <p>
+    New focus distance: <strong data-field="focus-output-mm">0.0</strong> mm
+    (<strong data-field="focus-output-m">0.000</strong> m)
+  </p>
+</div>
