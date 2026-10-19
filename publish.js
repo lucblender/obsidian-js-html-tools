@@ -437,4 +437,85 @@ publish.registerMarkdownPostProcessor(async (el, ctx) => {
     ratioInput.addEventListener('input', updateTeleAperture);
     updateTeleAperture();
   });
+
+  el.querySelectorAll('.tele-ev-loss-calculator').forEach((calculator) => {
+    if (calculator.dataset.teleEvReady === 'true') return;
+    calculator.dataset.teleEvReady = 'true';
+
+    const ratioInput = calculator.querySelector('[data-field="tele-ratio"]');
+    const output = calculator.querySelector('[data-field="tele-ev-output"]');
+
+    if (!(ratioInput instanceof HTMLInputElement) || !(output instanceof HTMLElement)) {
+      return;
+    }
+
+    const updateTeleEvLoss = () => {
+      const ratio = Number(ratioInput.value);
+
+      if (!Number.isFinite(ratio) || ratio < 1) {
+        output.textContent = 'Invalid input';
+        return;
+      }
+
+      const evLoss = 2 * Math.log2(ratio);
+      output.textContent = evLoss.toFixed(2);
+    };
+
+    ratioInput.addEventListener('input', updateTeleEvLoss);
+    updateTeleEvLoss();
+  });
+
+  el.querySelectorAll('.c41-timing-calculator').forEach((calculator) => {
+    if (calculator.dataset.c41Ready === 'true') return;
+    calculator.dataset.c41Ready = 'true';
+
+    const rollInput = calculator.querySelector('[data-field="roll-count"]');
+    const outputDefault = calculator.querySelector('[data-field="time-default"]');
+    const outputPush1 = calculator.querySelector('[data-field="time-push1"]');
+    const outputPush2 = calculator.querySelector('[data-field="time-push2"]');
+    const outputPush3 = calculator.querySelector('[data-field="time-push3"]');
+    const outputPull1 = calculator.querySelector('[data-field="time-pull1"]');
+
+    if (!(rollInput instanceof HTMLInputElement) || !(outputDefault instanceof HTMLElement) || !(outputPush1 instanceof HTMLElement) || !(outputPush2 instanceof HTMLElement) || !(outputPush3 instanceof HTMLElement) || !(outputPull1 instanceof HTMLElement)) {
+      return;
+    }
+
+    const setInvalidOutput = () => {
+      outputDefault.textContent = 'Invalid input';
+      outputPush1.textContent = 'Invalid input';
+      outputPush2.textContent = 'Invalid input';
+      outputPush3.textContent = 'Invalid input';
+      outputPull1.textContent = 'Invalid input';
+    };
+
+    const formatSecondsAsTime = (secondsValue) => {
+      const roundedSeconds = Math.round(secondsValue);
+      const hours = Math.floor(roundedSeconds / 3600);
+      const minutes = Math.floor((roundedSeconds % 3600) / 60);
+      const seconds = roundedSeconds % 60;
+      return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    };
+
+    const updateC41Timing = () => {
+      const rolls = Number(rollInput.value);
+
+      if (!Number.isFinite(rolls) || rolls < 1 || !Number.isInteger(rolls)) {
+        setInvalidOutput();
+        return;
+      }
+
+      const baseSeconds = 3 * 60 + 30;
+      const rowMultiplier = 1 + (rolls - 1) * 0.02;
+      const defaultSeconds = baseSeconds * rowMultiplier;
+
+      outputDefault.textContent = formatSecondsAsTime(defaultSeconds);
+      outputPush1.textContent = formatSecondsAsTime(defaultSeconds * 1.3);
+      outputPush2.textContent = formatSecondsAsTime(defaultSeconds * 1.75);
+      outputPush3.textContent = formatSecondsAsTime(defaultSeconds * 2.5);
+      outputPull1.textContent = formatSecondsAsTime(defaultSeconds / 1.3);
+    };
+
+    rollInput.addEventListener('input', updateC41Timing);
+    updateC41Timing();
+  });
 });

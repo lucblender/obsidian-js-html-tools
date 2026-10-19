@@ -113,3 +113,27 @@
     Reduced aperture: <strong data-field="aperture-output">f/0.0</strong>
   </p>
 </div>
+
+<div class="tele-ev-loss-calculator" style="border:1px solid var(--background-modifier-border); border-radius:8px; padding:12px 14px; margin:12px 0;">
+  <label>
+    Teleconverter ratio (M):
+    <input type="number" min="1" step="0.1" data-field="tele-ratio" value="2">
+  </label>
+  <p>
+    EV loss: <strong data-field="tele-ev-output">0.00</strong> EV
+  </p>
+</div>
+
+<div class="c41-timing-calculator" style="border:1px solid var(--background-modifier-border); border-radius:8px; padding:12px 14px; margin:12px 0;">
+  <label>
+    Number of rolls:
+    <input type="number" min="1" step="1" data-field="roll-count" value="1">
+  </label>
+  <p>
+    Default: <strong data-field="time-default">00:03:30</strong><br>
+    Push +1: <strong data-field="time-push1">00:04:33</strong><br>
+    Push +2: <strong data-field="time-push2">00:06:08</strong><br>
+    Push +3: <strong data-field="time-push3">00:08:45</strong><br>
+    Pull -1: <strong data-field="time-pull1">00:02:42</strong>
+  </p>
+</div>
