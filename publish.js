@@ -226,4 +226,34 @@ publish.registerMarkdownPostProcessor(async (el, ctx) => {
     wrapper.appendChild(input);
     table.parentNode.insertBefore(wrapper, table);
   });
+
+  el.querySelectorAll('.ev-loss-calculator').forEach((calculator) => {
+    if (calculator.dataset.evReady === 'true') return;
+    calculator.dataset.evReady = 'true';
+
+    const focalInput = calculator.querySelector('[data-field="focal-length"]');
+    const extensionInput = calculator.querySelector('[data-field="extension-length"]');
+    const output = calculator.querySelector('[data-field="ev-output"]');
+
+    if (!(focalInput instanceof HTMLInputElement) || !(extensionInput instanceof HTMLInputElement) || !(output instanceof HTMLElement)) {
+      return;
+    }
+
+    const updateEvLoss = () => {
+      const focal = Number(focalInput.value);
+      const extension = Number(extensionInput.value);
+
+      if (!Number.isFinite(focal) || !Number.isFinite(extension) || focal <= 0 || extension < 0) {
+        output.textContent = 'Invalid input';
+        return;
+      }
+
+      const evLoss = 2 * Math.log2(1 + (extension / focal));
+      output.textContent = evLoss.toFixed(2);
+    };
+
+    focalInput.addEventListener('input', updateEvLoss);
+    extensionInput.addEventListener('input', updateEvLoss);
+    updateEvLoss();
+  });
 });
