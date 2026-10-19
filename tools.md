@@ -13,3 +13,27 @@
     EV loss: <strong data-field="ev-output">0.00</strong> EV
   </p>
 </div>
+
+<div class="aov-calculator" style="border:1px solid var(--background-modifier-border); border-radius:8px; padding:12px 14px; margin:12px 0;">
+  <label>
+    Focal length (mm):
+    <input type="number" min="1" step="0.1" data-field="focal-length" value="50">
+  </label>
+  <br>
+  <br>
+  <label>
+    Film size:
+    <select data-field="film-format">
+      <option value="36x24">135 (36x24)</option>
+      <option value="56x42">120 4.5x6 (~56x42)</option>
+      <option value="56x56">120 6x6 (~56x56)</option>
+      <option value="70x56">120 6x7 (~70x56)</option>
+      <option value="84x56">120 6x9 (~84x56)</option>
+    </select>
+  </label>
+  <p>
+    Hor.: <strong data-field="aov-output-h">0.00</strong>°<br>
+    Vert.: <strong data-field="aov-output-v">0.00</strong>°<br>
+    Diag.: <strong data-field="aov-output-d">0.00</strong>°
+  </p>
+</div>

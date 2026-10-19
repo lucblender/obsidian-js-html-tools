@@ -256,4 +256,50 @@ publish.registerMarkdownPostProcessor(async (el, ctx) => {
     extensionInput.addEventListener('input', updateEvLoss);
     updateEvLoss();
   });
+
+  el.querySelectorAll('.aov-calculator').forEach((calculator) => {
+    if (calculator.dataset.aovReady === 'true') return;
+    calculator.dataset.aovReady = 'true';
+
+    const focalInput = calculator.querySelector('[data-field="focal-length"]');
+    const filmFormatInput = calculator.querySelector('[data-field="film-format"]');
+    const outputH = calculator.querySelector('[data-field="aov-output-h"]');
+    const outputV = calculator.querySelector('[data-field="aov-output-v"]');
+    const outputD = calculator.querySelector('[data-field="aov-output-d"]');
+
+    if (!(focalInput instanceof HTMLInputElement) || !(filmFormatInput instanceof HTMLSelectElement) || !(outputH instanceof HTMLElement) || !(outputV instanceof HTMLElement) || !(outputD instanceof HTMLElement)) {
+      return;
+    }
+
+    const setInvalidOutput = () => {
+      outputH.textContent = 'Invalid input';
+      outputV.textContent = 'Invalid input';
+      outputD.textContent = 'Invalid input';
+    };
+
+    const updateAngleOfView = () => {
+      const focal = Number(focalInput.value);
+      const dimensions = filmFormatInput.value.split('x');
+      const width = Number(dimensions[0]);
+      const height = Number(dimensions[1]);
+
+      if (!Number.isFinite(focal) || !Number.isFinite(width) || !Number.isFinite(height) || focal <= 0 || width <= 0 || height <= 0) {
+        setInvalidOutput();
+        return;
+      }
+
+      const diagonal = Math.hypot(width, height);
+      const angleHorizontal = 2 * Math.atan(width / (2 * focal));
+      const angleVertical = 2 * Math.atan(height / (2 * focal));
+      const angleDiagonal = 2 * Math.atan(diagonal / (2 * focal));
+
+      outputH.textContent = (angleHorizontal * (180 / Math.PI)).toFixed(2);
+      outputV.textContent = (angleVertical * (180 / Math.PI)).toFixed(2);
+      outputD.textContent = (angleDiagonal * (180 / Math.PI)).toFixed(2);
+    };
+
+    focalInput.addEventListener('input', updateAngleOfView);
+    filmFormatInput.addEventListener('change', updateAngleOfView);
+    updateAngleOfView();
+  });
 });
