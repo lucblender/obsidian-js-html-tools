@@ -302,4 +302,57 @@ publish.registerMarkdownPostProcessor(async (el, ctx) => {
     filmFormatInput.addEventListener('change', updateAngleOfView);
     updateAngleOfView();
   });
+
+  el.querySelectorAll('.equiv-focal-calculator').forEach((calculator) => {
+    if (calculator.dataset.equivFocalReady === 'true') return;
+    calculator.dataset.equivFocalReady = 'true';
+
+    const focalInput = calculator.querySelector('[data-field="original-focal-length"]');
+    const originalFilmFormatInput = calculator.querySelector('[data-field="original-film-format"]');
+    const equivalentFilmFormatInput = calculator.querySelector('[data-field="equivalent-film-format"]');
+    const outputH = calculator.querySelector('[data-field="equiv-focal-output-h"]');
+    const outputV = calculator.querySelector('[data-field="equiv-focal-output-v"]');
+    const outputD = calculator.querySelector('[data-field="equiv-focal-output-d"]');
+
+    if (!(focalInput instanceof HTMLInputElement) || !(originalFilmFormatInput instanceof HTMLSelectElement) || !(equivalentFilmFormatInput instanceof HTMLSelectElement) || !(outputH instanceof HTMLElement) || !(outputV instanceof HTMLElement) || !(outputD instanceof HTMLElement)) {
+      return;
+    }
+
+    const setInvalidOutput = () => {
+      outputH.textContent = 'Invalid input';
+      outputV.textContent = 'Invalid input';
+      outputD.textContent = 'Invalid input';
+    };
+
+    const updateEquivalentFocalLength = () => {
+      const focal = Number(focalInput.value);
+      const originalDimensions = originalFilmFormatInput.value.split('x');
+      const equivalentDimensions = equivalentFilmFormatInput.value.split('x');
+      const originalWidth = Number(originalDimensions[0]);
+      const originalHeight = Number(originalDimensions[1]);
+      const equivalentWidth = Number(equivalentDimensions[0]);
+      const equivalentHeight = Number(equivalentDimensions[1]);
+
+      if (!Number.isFinite(focal) || !Number.isFinite(originalWidth) || !Number.isFinite(originalHeight) || !Number.isFinite(equivalentWidth) || !Number.isFinite(equivalentHeight) || focal <= 0 || originalWidth <= 0 || originalHeight <= 0 || equivalentWidth <= 0 || equivalentHeight <= 0) {
+        setInvalidOutput();
+        return;
+      }
+
+      const originalDiagonal = Math.hypot(originalWidth, originalHeight);
+      const equivalentDiagonal = Math.hypot(equivalentWidth, equivalentHeight);
+
+      const equivH = focal * (equivalentWidth / originalWidth);
+      const equivV = focal * (equivalentHeight / originalHeight);
+      const equivD = focal * (equivalentDiagonal / originalDiagonal);
+
+      outputH.textContent = equivH.toFixed(1);
+      outputV.textContent = equivV.toFixed(1);
+      outputD.textContent = equivD.toFixed(1);
+    };
+
+    focalInput.addEventListener('input', updateEquivalentFocalLength);
+    originalFilmFormatInput.addEventListener('change', updateEquivalentFocalLength);
+    equivalentFilmFormatInput.addEventListener('change', updateEquivalentFocalLength);
+    updateEquivalentFocalLength();
+  });
 });

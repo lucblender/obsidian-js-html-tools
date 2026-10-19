@@ -37,3 +37,40 @@
     Diag.: <strong data-field="aov-output-d">0.00</strong>°
   </p>
 </div>
+
+<div class="equiv-focal-calculator" style="border:1px solid var(--background-modifier-border); border-radius:8px; padding:12px 14px; margin:12px 0;">
+  <label>
+    Original focal length (mm):
+    <input type="number" min="1" step="0.1" data-field="original-focal-length" value="50">
+  </label>
+  <br>
+  <br>
+  <label>
+    Original film size:
+    <select data-field="original-film-format">
+      <option value="36x24">135 (36x24)</option>
+      <option value="56x42">120 4.5x6 (~56x42)</option>
+      <option value="56x56">120 6x6 (~56x56)</option>
+      <option value="70x56">120 6x7 (~70x56)</option>
+      <option value="84x56">120 6x9 (~84x56)</option>
+    </select>
+  </label>
+  <br>
+  <br>
+  <label>
+    Equivalent film size:
+    <select data-field="equivalent-film-format">
+      <option value="36x24">135 (36x24)</option>
+      <option value="56x42">120 4.5x6 (~56x42)</option>
+      <option value="56x56">120 6x6 (~56x56)</option>
+      <option value="70x56">120 6x7 (~70x56)</option>
+      <option value="84x56" selected>120 6x9 (~84x56)</option>
+    </select>
+  </label>
+  <p>
+    Equivalent focal length<br>
+    Hor.: <strong data-field="equiv-focal-output-h">0.0</strong> mm<br>
+    Vert.: <strong data-field="equiv-focal-output-v">0.0</strong> mm<br>
+    Diag.: <strong data-field="equiv-focal-output-d">0.0</strong> mm
+  </p>
+</div>
