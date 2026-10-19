@@ -26,6 +26,112 @@ function updateCurrentPath() {
   }
 }
 
+const helixbyteBottomBannerId = 'lucas-bottom-banner';
+
+function ensureBottomBanner() {
+  if (!document.body) return;
+  if (document.getElementById(helixbyteBottomBannerId)) return;
+
+  const style = document.createElement('style');
+  style.id = `${helixbyteBottomBannerId}-style`;
+  style.textContent = `
+    body {
+      padding-bottom: 18px !important;
+    }
+
+    #${helixbyteBottomBannerId} {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px;
+      border-top: 1px solid rgba(255,255,255,0.14);
+      background: rgba(14, 16, 18, 0.96);
+      color: #f3efe8;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      box-shadow: 0 -8px 24px rgba(0,0,0,0.16);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    #${helixbyteBottomBannerId} .brand {
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      white-space: nowrap;
+    }
+
+    #${helixbyteBottomBannerId} .links {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    #${helixbyteBottomBannerId} a {
+      color: #f3efe8;
+      opacity: 0.78;
+      text-decoration: none;
+      transition: opacity 0.2s ease;
+    }
+
+    #${helixbyteBottomBannerId} a:hover {
+      opacity: 1;
+    }
+
+    @media (max-width: 640px) {
+      #${helixbyteBottomBannerId} {
+        padding: 8px 12px;
+        gap: 8px;
+        font-size: 10px;
+        letter-spacing: 0.06em;
+      }
+
+      #${helixbyteBottomBannerId} .links {
+        gap: 8px;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+
+  const banner = document.createElement('div');
+  banner.id = helixbyteBottomBannerId;
+
+  const brand = document.createElement('div');
+  brand.className = 'brand';
+  brand.textContent = 'helixbyte';
+
+  const linksWrap = document.createElement('div');
+  linksWrap.className = 'links';
+
+  const links = [
+    { label: 'Main Website', href: 'https://www.lucas-bonvin.com/' },
+    { label: 'Wiki Home', href: 'https://www.luc-b.ch/wiki' },
+    { label: 'Instagram', href: 'https://www.instagram.com/helixbyte/' }
+  ];
+
+  links.forEach((link) => {
+    const a = document.createElement('a');
+    a.href = link.href;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = link.label;
+    linksWrap.appendChild(a);
+  });
+
+  banner.appendChild(brand);
+  banner.appendChild(linksWrap);
+  document.body.appendChild(banner);
+}
+
+ensureBottomBanner();
+
 publish.registerMarkdownPostProcessor(async (el, ctx) => {
   updateCurrentPath();
 
