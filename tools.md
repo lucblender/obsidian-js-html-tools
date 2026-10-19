@@ -137,3 +137,41 @@
     Pull -1: <strong data-field="time-pull1">00:02:42</strong>
   </p>
 </div>
+
+<div class="id11-timing-calculator" style="border:1px solid var(--background-modifier-border); border-radius:8px; padding:12px 14px; margin:12px 0;">
+  <label>
+    Film:
+    <select data-field="film"></select>
+  </label>
+  <br>
+  <br>
+  <label>
+    ISO:
+    <select data-field="iso"></select>
+  </label>
+  <br>
+  <br>
+  <label>
+    Temperature (°C):
+    <select data-field="temperature">
+      <option value="24">24</option>
+      <option value="23">23</option>
+      <option value="22">22</option>
+      <option value="21">21</option>
+      <option value="20" selected>20</option>
+      <option value="19">19</option>
+      <option value="18">18</option>
+      <option value="17">17</option>
+      <option value="16">16</option>
+    </select>
+  </label>
+  <br>
+  <br>
+  <label>
+    Roll number:
+    <input type="number" min="1" max="10" step="1" data-field="roll-number" value="1">
+  </label>
+  <p>
+    Development time: <strong data-field="time-output">00:00:00</strong>
+  </p>
+</div>

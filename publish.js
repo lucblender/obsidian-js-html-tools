@@ -518,4 +518,193 @@ publish.registerMarkdownPostProcessor(async (el, ctx) => {
     rollInput.addEventListener('input', updateC41Timing);
     updateC41Timing();
   });
+
+  el.querySelectorAll('.id11-timing-calculator').forEach((calculator) => {
+    if (calculator.dataset.id11Ready === 'true') return;
+    calculator.dataset.id11Ready = 'true';
+
+    const filmInput = calculator.querySelector('[data-field="film"]');
+    const isoInput = calculator.querySelector('[data-field="iso"]');
+    const temperatureInput = calculator.querySelector('[data-field="temperature"]');
+    const rollInput = calculator.querySelector('[data-field="roll-number"]');
+    const output = calculator.querySelector('[data-field="time-output"]');
+
+    if (!(filmInput instanceof HTMLSelectElement) || !(isoInput instanceof HTMLSelectElement) || !(temperatureInput instanceof HTMLSelectElement) || !(rollInput instanceof HTMLInputElement) || !(output instanceof HTMLElement)) {
+      return;
+    }
+
+    const parseTimeToSeconds = (timeText) => {
+      const parts = timeText.split(':').map(Number);
+      if (parts.length !== 3 || parts.some((value) => !Number.isFinite(value))) {
+        return NaN;
+      }
+      return (parts[0] * 3600) + (parts[1] * 60) + parts[2];
+    };
+
+    const formatSecondsAsTime = (secondsValue) => {
+      const roundedSeconds = Math.round(secondsValue);
+      const hours = Math.floor(roundedSeconds / 3600);
+      const minutes = Math.floor((roundedSeconds % 3600) / 60);
+      const seconds = roundedSeconds % 60;
+      return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    };
+
+    const normalizeText = (value) => value.replace(/\s+/g, ' ').trim();
+
+    const isId11TimingTable = (table) => {
+      const headers = Array.from(table.querySelectorAll('thead th')).map((th) => normalizeText((th.textContent || '').toLowerCase()));
+      if (headers.length === 0) {
+        const firstRowHeaders = Array.from(table.querySelectorAll('tr:first-child th')).map((th) => normalizeText((th.textContent || '').toLowerCase()));
+        return firstRowHeaders.includes('film') && firstRowHeaders.includes('iso') && firstRowHeaders.includes('time');
+      }
+      return headers.includes('film') && headers.includes('iso') && headers.includes('time');
+    };
+
+    const findId11TimingTable = () => {
+      const allTables = Array.from(document.querySelectorAll('table'));
+      const matchingTables = allTables.filter((table) => table instanceof HTMLTableElement && isId11TimingTable(table));
+      if (matchingTables.length === 0) return null;
+
+      const followingTables = matchingTables.filter((table) => (calculator.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0);
+      if (followingTables.length > 0) return followingTables[0];
+      return matchingTables[0];
+    };
+
+    const temperatureFactors = {
+      24: 0.683013455,
+      23: 0.751314801,
+      22: 0.826446281,
+      21: 0.909090909,
+      20: 1,
+      19: 1.1,
+      18: 1.21,
+      17: 1.331,
+      16: 1.4641,
+    };
+
+    const initializeId11Calculator = (timingTable) => {
+      const rows = Array.from(timingTable.querySelectorAll('tbody tr'));
+      const entries = [];
+
+      rows.forEach((row) => {
+        const cells = Array.from(row.querySelectorAll('td'));
+        if (cells.length < 3) return;
+
+        const film = normalizeText(cells[0].textContent || '');
+        const iso = normalizeText(cells[1].textContent || '');
+        const timeText = normalizeText(cells[2].textContent || '');
+        const baseSeconds = parseTimeToSeconds(timeText);
+        const isDefault = Boolean(cells[0].querySelector('strong')) && Boolean(cells[1].querySelector('strong'));
+
+        if (!film || !iso || !Number.isFinite(baseSeconds)) return;
+
+        entries.push({
+          film,
+          iso,
+          baseSeconds,
+          isDefault,
+        });
+      });
+
+      if (entries.length === 0) {
+        output.textContent = 'No data found';
+        return;
+      }
+
+      const filmMap = new Map();
+      entries.forEach((entry) => {
+        if (!filmMap.has(entry.film)) {
+          filmMap.set(entry.film, []);
+        }
+        filmMap.get(entry.film).push(entry);
+      });
+
+      filmInput.innerHTML = '';
+      const filmNames = Array.from(filmMap.keys());
+      filmNames.forEach((filmName) => {
+        const option = document.createElement('option');
+        option.value = filmName;
+        option.textContent = filmName;
+        filmInput.appendChild(option);
+      });
+
+      const renderIsoOptions = () => {
+        const selectedFilm = filmInput.value;
+        const options = filmMap.get(selectedFilm) || [];
+        isoInput.innerHTML = '';
+
+        options.forEach((entry) => {
+          const option = document.createElement('option');
+          option.value = entry.iso;
+          option.textContent = entry.isDefault ? `${entry.iso} (default)` : entry.iso;
+          if (entry.isDefault) {
+            option.selected = true;
+          }
+          isoInput.appendChild(option);
+        });
+
+        if (!options.some((entry) => entry.isDefault) && options.length > 0) {
+          isoInput.selectedIndex = 0;
+        }
+      };
+
+      const updateTiming = () => {
+        const selectedFilm = filmInput.value;
+        const selectedIsoValue = isoInput.value;
+        const selectedIso = selectedIsoValue.replace(/\s+\(default\)\s*$/, '');
+        const temperature = Number(temperatureInput.value);
+        const roll = Number(rollInput.value);
+
+        if (!Number.isFinite(temperature) || !(temperature in temperatureFactors) || !Number.isInteger(roll) || roll < 1 || roll > 10) {
+          output.textContent = 'Invalid input';
+          return;
+        }
+
+        const options = filmMap.get(selectedFilm) || [];
+        const selectedEntry = options.find((entry) => entry.iso === selectedIso);
+
+        if (!selectedEntry) {
+          output.textContent = 'Invalid film/ISO';
+          return;
+        }
+
+        const temperatureFactor = temperatureFactors[temperature];
+        const rollFactor = 1 + ((roll - 1) * 0.1);
+        const adjustedSeconds = selectedEntry.baseSeconds * temperatureFactor * rollFactor;
+        output.textContent = formatSecondsAsTime(adjustedSeconds);
+      };
+
+      filmInput.addEventListener('change', () => {
+        renderIsoOptions();
+        updateTiming();
+      });
+      isoInput.addEventListener('change', updateTiming);
+      temperatureInput.addEventListener('change', updateTiming);
+      rollInput.addEventListener('input', updateTiming);
+
+      const firstFilm = filmNames[0];
+      filmInput.value = firstFilm;
+      renderIsoOptions();
+      updateTiming();
+    };
+
+    const tryInitializeId11Calculator = (remainingAttempts) => {
+      const timingTable = findId11TimingTable();
+      if (timingTable) {
+        initializeId11Calculator(timingTable);
+        return;
+      }
+
+      if (remainingAttempts <= 0) {
+        output.textContent = 'Table not found';
+        return;
+      }
+
+      setTimeout(() => {
+        tryInitializeId11Calculator(remainingAttempts - 1);
+      }, 120);
+    };
+
+    tryInitializeId11Calculator(15);
+  });
 });
