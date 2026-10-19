@@ -198,4 +198,32 @@ publish.registerMarkdownPostProcessor(async (el, ctx) => {
       });
     }
   });
+
+  el.querySelectorAll('table').forEach((table) => {
+    if (table.dataset.searchReady === 'true') return;
+    table.dataset.searchReady = 'true';
+
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('table-filter-wrapper');
+
+    const input = document.createElement('input');
+    input.type = 'search';
+    input.placeholder = 'Search table...';
+    input.className = 'table-filter-input';
+
+    const rows = Array.from(table.querySelectorAll('tbody tr'));
+
+    const applyFilter = () => {
+      const query = input.value.trim().toLowerCase();
+      rows.forEach((row) => {
+        const text = row.textContent.toLowerCase();
+        const matches = !query || text.includes(query);
+        row.style.display = matches ? '' : 'none';
+      });
+    };
+
+    input.addEventListener('input', applyFilter);
+    wrapper.appendChild(input);
+    table.parentNode.insertBefore(wrapper, table);
+  });
 });
