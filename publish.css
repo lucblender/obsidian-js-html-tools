@@ -412,6 +412,16 @@ body {
 	--img-grid-gap: 0.5rem
 }
 
+::selection {
+	background: rgba(129, 161, 193, 0.45);
+	color: var(--text-normal, #d8dee9);
+}
+
+::-moz-selection {
+	background: rgba(129, 161, 193, 0.45);
+	color: var(--text-normal, #d8dee9);
+}
+
 @media (max-width:400pt) {
 	body {
 		--img-grid-gap: 0.25rem
