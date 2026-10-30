@@ -211,20 +211,34 @@ publish.registerMarkdownPostProcessor(async (el, ctx) => {
     input.placeholder = 'Search table...';
     input.className = 'table-filter-input';
 
+    const resultCount = document.createElement('span');
+    resultCount.className = 'table-filter-result-count';
+    resultCount.setAttribute('aria-live', 'polite');
+    resultCount.hidden = true;
+
     const rows = Array.from(table.querySelectorAll('tbody tr'));
 
     const applyFilter = () => {
       const query = input.value.trim().toLowerCase();
+      let visibleCount = 0;
+
       rows.forEach((row) => {
         const text = row.textContent.toLowerCase();
         const matches = !query || text.includes(query);
         row.style.display = matches ? '' : 'none';
+        if (matches) visibleCount += 1;
       });
+
+      const isActive = query.length > 0;
+      resultCount.hidden = !isActive;
+      resultCount.textContent = `${visibleCount} result${visibleCount === 1 ? '' : 's'}`;
     };
 
     input.addEventListener('input', applyFilter);
     wrapper.appendChild(input);
+    wrapper.appendChild(resultCount);
     table.parentNode.insertBefore(wrapper, table);
+    applyFilter();
   });
 
   el.querySelectorAll('.ev-loss-calculator').forEach((calculator) => {
