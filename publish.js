@@ -203,6 +203,59 @@ publish.registerMarkdownPostProcessor(async (el, ctx) => {
     if (table.dataset.searchReady === 'true') return;
     table.dataset.searchReady = 'true';
 
+    const rows = Array.from(table.querySelectorAll('tbody tr'));
+    if (rows.length === 0) return;
+
+    const isPictureOnlyCell = (cell) => {
+      if (!cell) return true;
+
+      const hasImage = cell.querySelector('img, svg, canvas, picture, video, iframe, .internal-embed, .image-embed');
+      if (!hasImage) return false;
+
+      const text = (cell.textContent || '').replace(/\s+/g, ' ').trim();
+      if (!text) return true;
+
+      const strippedText = text
+        .replace(/!?\[\[[^\]]*\]\]/g, '')
+        .replace(/[A-Za-z0-9._ -]+\.(png|jpe?g|gif|bmp|svg|webp|avif|tiff?)(\|\s*\d+(?:\.\d+)?(?:px|%)?)?/gi, '')
+        .replace(/\|\s*\d+(?:\.\d+)?\s*(?:px|%)?/gi, '')
+        .replace(/\b\d+(?:\.\d+)?\s*(?:px|%)?\b/g, '')
+        .replace(/[\[\]`]+/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      return strippedText.length === 0;
+    };
+
+    const isTablePictureOnly = rows.every((row) => {
+      const cells = Array.from(row.children);
+      return cells.length > 0 && cells.every((cell) => isPictureOnlyCell(cell));
+    });
+
+    if (isTablePictureOnly) return;
+
+    const headerCells = Array.from(table.querySelectorAll('thead th'));
+    const fallbackHeaders = headerCells.length > 0 ? headerCells : Array.from(table.querySelectorAll('tr:first-child th, tr:first-child td'));
+    const namedColumns = [];
+
+    const maxColumns = Math.max(
+      ...rows.map((row) => Array.from(row.children).length),
+      fallbackHeaders.length
+    );
+
+    for (let columnIndex = 0; columnIndex < maxColumns; columnIndex += 1) {
+      const headerCell = fallbackHeaders[columnIndex];
+      if (!headerCell) continue;
+
+      const label = (headerCell.textContent || '').replace(/\s+/g, ' ').trim();
+      if (!label || isPictureOnlyCell(headerCell)) continue;
+
+      namedColumns.push({
+        index: columnIndex,
+        label,
+      });
+    }
+
     const wrapper = document.createElement('div');
     wrapper.classList.add('table-filter-wrapper');
 
@@ -211,20 +264,62 @@ publish.registerMarkdownPostProcessor(async (el, ctx) => {
     input.placeholder = 'Search table...';
     input.className = 'table-filter-input';
 
+    const wholeMatchLabel = document.createElement('label');
+    wholeMatchLabel.className = 'table-filter-toggle';
+
+    const wholeMatchCheckbox = document.createElement('input');
+    wholeMatchCheckbox.type = 'checkbox';
+    wholeMatchCheckbox.checked = false;
+    wholeMatchCheckbox.setAttribute('aria-label', 'Whole match only');
+
+    const wholeMatchText = document.createElement('span');
+    wholeMatchText.textContent = 'Whole match';
+
+    wholeMatchLabel.appendChild(wholeMatchCheckbox);
+    wholeMatchLabel.appendChild(wholeMatchText);
+
+    const select = document.createElement('select');
+    select.className = 'table-filter-select';
+    select.setAttribute('aria-label', 'Select column to filter by');
+
+    const allOption = new Option('All', 'all');
+    select.appendChild(allOption);
+
+    namedColumns.forEach(({ index, label }) => {
+      const option = new Option(label, `column-${index}`);
+      select.appendChild(option);
+    });
+
     const resultCount = document.createElement('span');
     resultCount.className = 'table-filter-result-count';
     resultCount.setAttribute('aria-live', 'polite');
     resultCount.hidden = true;
 
-    const rows = Array.from(table.querySelectorAll('tbody tr'));
-
     const applyFilter = () => {
       const query = input.value.trim().toLowerCase();
+      const wholeMatch = wholeMatchCheckbox.checked;
+      const selectedColumn = select.value;
+      const selectedIndex = selectedColumn.startsWith('column-') ? Number(selectedColumn.replace('column-', '')) : null;
       let visibleCount = 0;
 
       rows.forEach((row) => {
-        const text = row.textContent.toLowerCase();
-        const matches = !query || text.includes(query);
+        const cells = Array.from(row.children);
+        const cellValues = (() => {
+          if (selectedIndex === null) {
+            return cells.map((cell) => (cell.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase());
+          }
+
+          const cell = cells[selectedIndex];
+          return [((cell?.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase())];
+        })();
+
+        const matches = !query || cellValues.some((value) => {
+          if (wholeMatch) {
+            return value === query;
+          }
+          return value.includes(query);
+        });
+
         row.style.display = matches ? '' : 'none';
         if (matches) visibleCount += 1;
       });
@@ -235,9 +330,16 @@ publish.registerMarkdownPostProcessor(async (el, ctx) => {
     };
 
     input.addEventListener('input', applyFilter);
+    wholeMatchCheckbox.addEventListener('change', applyFilter);
+    select.addEventListener('change', applyFilter);
+
     wrapper.appendChild(input);
+    wrapper.appendChild(wholeMatchLabel);
+    wrapper.appendChild(select);
     wrapper.appendChild(resultCount);
     table.parentNode.insertBefore(wrapper, table);
+
+    select.value = 'all';
     applyFilter();
   });
 
